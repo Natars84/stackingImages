@@ -1,6 +1,7 @@
 import sys
 import glob
 import os
+import time
 
 # Les extensions d'images prises en charge
 EXTENSIONS_IMAGE = {
@@ -57,13 +58,37 @@ def demander_information_string(question: str, reponses_possibles: set = None) -
     reponse_utilisateur = ""
     
     reponses_possibles_upper = {r.upper().strip() for r in reponses_possibles}
+    question = question + " (Rép. possibles : " + ", ".join(reponses_possibles) + "):".upper().strip()
 
+    # On affiche la question et attends une réponse de l'utilisateur
     if len(reponses_possibles_upper) >= 1:
+
+        # Tant que la réponse de l'utilisateur est invalide
         while reponse_utilisateur not in reponses_possibles_upper:
-            reponse_utilisateur = input(question + " (Rép. possibles : " + ", ".join(reponses_possibles) + ") ").upper().strip()
+            sys.stdout.write(question + ' ') #On écrit puis affiche la question
+            sys.stdout.flush()
+
+            reponse_utilisateur = sys.stdin.readline().strip().upper()
             
-            if not reponse_utilisateur and len(reponses_possibles_upper) > 0:
-                continue
+            # Si la réponse de l'utilisateur est correcte, on sort de la boucle
+            if reponse_utilisateur in reponses_possibles_upper:
+                print(f"\r{question}{reponse_utilisateur}")
+                break
+
+            # On efface l'écran
+            nombreCaractereAffiche = len(question) + len(reponse_utilisateur)
+            sys.stdout.write('\r' + ' ' * (nombreCaractereAffiche + 1) + '\r')
+            sys.stdout.flush()
+
+            # On affiche un message d'erreur
+            messageErreur = "Réponse invalide, veuillez réessayer"
+            sys.stdout.write('\r' + messageErreur + '\r')
+            sys.stdout.flush()
+            time.sleep(2)
+
+            # On efface de nouveau l'écran
+            sys.stdout.write('\r' + ' ' * (len(messageErreur) + 1) + '\r')
+            sys.stdout.flush()
 
     else:
         reponse_utilisateur = input(question).upper().strip()
@@ -110,7 +135,5 @@ if __name__ == "__main__":
         "Si vous souhaitez poursuivre l'installation, ce dossier sera supprimé.\n" \
         "\nVoulez-vous continuer ?"
 
-        reponse_accepte = ["O", "OUI", "N", "NON", "Y", "YES", "N", "NO"]
+        reponse_accepte = {"O", "N"}
         reponse_utilisateur = demander_information_string(question, reponse_accepte)
-
-        print(f"L'utilisateur a finalement répondu: {reponse_utilisateur}")

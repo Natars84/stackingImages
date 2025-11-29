@@ -63,18 +63,18 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Erreur: veuillez fournir le chemin du dossier contenant les images.")
         sys.exit(1)
-    else:
-        chemin_dossier = sys.argv[1]
-        if not os.path.isdir(chemin_dossier):
-            print(f"Erreur: le chemin fourni '{chemin_dossier}' n'est pas un dossier valide.")
-            sys.exit(1)
         
-        listeExtension = compter_type_fichier(chemin_dossier)
+    chemin_dossier = sys.argv[1]
+    if not os.path.isdir(chemin_dossier):
+        print(f"Erreur: le chemin fourni '{chemin_dossier}' n'est pas un dossier valide.")
+        sys.exit(1)
+    
+    listeExtension = compter_type_fichier(chemin_dossier)
 
-        # On vérifie qu'il n'y ait qu'un seul type de fichier image dans le dossier
-        type_fichier_trouve = listeExtension.keys()
-        type_image_trouve = EXTENSIONS_IMAGE.intersection(type_fichier_trouve)
+    # On vérifie qu'il n'y ait qu'un seul type de fichier image dans le dossier
+    type_fichier_trouve = listeExtension.keys()
+    type_image_trouve = EXTENSIONS_IMAGE.intersection(type_fichier_trouve)
 
-        if len(type_image_trouve) > 1:
-            print("Des fichiers images de différents type ont été trouvés, veuillez ne laisser qu'un seul type de fichier à traiter.")
-            sys.exit(1)
+    if len(type_image_trouve) > 1:
+        print("Des fichiers images de différents type ont été trouvés, veuillez ne laisser qu'un seul type de fichier à traiter.")
+        sys.exit(1)

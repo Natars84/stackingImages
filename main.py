@@ -2,6 +2,7 @@ import sys
 import os
 import time
 import shutil
+from typing import Tuple, List, Union, Set, Optional
 
 # Les extensions d'images prises en charge
 EXTENSIONS_IMAGE = {
@@ -51,7 +52,7 @@ def compter_type_fichier(dossierAScanner: str):
 
 # Fonction chargée de demander une information à l'utilisateur. Elle peut contraindre sa réponse à une liste définie.
 # Elle renvoie sa réponse en tant que string
-def demander_information_string(question: str, reponses_possibles: set = None) -> str:
+def demander_information_string(question: str, reponses_possibles: Optional[Set[str]] = None) -> str:
     if reponses_possibles is None:
         reponses_possibles = set() # Utilise un set vide si aucun n'est fourni
 
@@ -96,7 +97,7 @@ def demander_information_string(question: str, reponses_possibles: set = None) -
     return reponse_utilisateur
 
 # Fonction chargée de supprimer récursivement un dossier (indiquer le chemin relatif du dossier)
-def supprimer_dossier(dossier_a_supprimer: str, recreer_dossier_vide: bool = False) -> bool:
+def supprimer_dossier(dossier_a_supprimer: str, recreer_dossier_vide: Optional[bool] = False) -> bool:
     dossier_a_supprimer = os.path.join(DOSSIER_PHOTO, dossier_a_supprimer)
     
     try:
@@ -108,6 +109,22 @@ def supprimer_dossier(dossier_a_supprimer: str, recreer_dossier_vide: bool = Fal
     except OSError as e:
         print(f"Erreur lors de la suppression du dossier: {e}")
         return False
+
+# Fonction chargée de stacker chacune des photos
+def stacking_photos(liste_photos: List[str], dossier_temporaire: str, nom_photo_finale: Optional[str] = "stacking"):
+    # Extration des infos de base de la première photo
+    photo_de_base_source = liste_photos[0]
+    dossier_origine = os.path.dirname(photo_de_base_source)
+    extension_photo = os.path.splitext(photo_de_base_source)[1]
+    nom_photo_finale = f"{nom_photo_finale}{extension_photo}"
+    chemin_photo_finale_temporaire = os.path.join(dossier_temporaire, nom_photo_finale)
+
+    # On copie la première photo dans le dossier temporaire et on lui donne directement le nom du fichier de sortie
+    shutil.copy2(photo_de_base_source, chemin_photo_finale_temporaire)
+
+    # On stack chacune des photos de la liste avec la photo de base
+    for photo in liste_photos:
+
 
 # Exécution du script
 if __name__ == "__main__":
@@ -139,10 +156,11 @@ if __name__ == "__main__":
         print("Des fichiers images de différents type ont été trouvés, veuillez ne laisser qu'un seul type de fichier à traiter.")
         sys.exit(1)
     
-    #################################
-    ##### TRAITEMENT DES PHOTOS #####
-    #################################
+    #############################################
+    ##### PREPARATION DU DOSSIER TEMPORAIRE #####
+    #############################################
     DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS = "tmp"
+    CHEMIN_DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS = os.path.join(DOSSIER_PHOTO, DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS)
 
     # Si le dossier temporaire existe déjà
     if DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS in os.listdir(DOSSIER_PHOTO):
@@ -164,4 +182,17 @@ if __name__ == "__main__":
             sys.exit(1)
 
     # Si le dossier temporaire n'existe pas
-    else: os.mkdir(os.path.join(DOSSIER_PHOTO, DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS))
+    else: os.mkdir(CHEMIN_DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS)
+
+    # On fait l'inventaire des photos présentes pour un traitement ultérieur
+    liste_fichier = os.listdir(DOSSIER_PHOTO)
+    liste_photos = []
+
+    for fichier in liste_fichier:
+        chemin_fichier = os.path.join(DOSSIER_PHOTO, fichier)
+        print(chemin_fichier)
+        if os.path.isfile(chemin_fichier): liste_photos.append(chemin_fichier)
+
+    # On appelle la fonction de stacking des photos
+
+    stacking_photos(liste_photos, CHEMIN_DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS)

@@ -1,7 +1,7 @@
 import sys
-import glob
 import os
 import time
+import shutil
 
 # Les extensions d'images prises en charge
 EXTENSIONS_IMAGE = {
@@ -130,10 +130,29 @@ if __name__ == "__main__":
     #################################
     DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS = "tmp"
 
+    # Si le dossier temporaire existe déjà
     if DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS in os.listdir(DOSSIER_PHOTO):
+
+        # On pose la question à l'utilisateur
         question = "Un dossier temporaire contenant les photos en cours de traitement a été trouvé.\n" \
         "Si vous souhaitez poursuivre l'installation, ce dossier sera supprimé.\n" \
         "\nVoulez-vous continuer ?"
 
         reponse_accepte = {"O", "N"}
         reponse_utilisateur = demander_information_string(question, reponse_accepte)
+
+        # Si l'utilisateur accepte la suppression du dossier temporaire
+        if reponse_utilisateur == 'O':
+            dossier_a_supprimer = os.path.join(DOSSIER_PHOTO, DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS)
+            
+            try:
+                shutil.rmtree(dossier_a_supprimer)
+            except OSError as e:
+                print(f"Erreur lors de la suppression du dossier: {e}")
+                sys.exit(1)
+        else:
+            print("Arrêt du script, veuillez déplacer ou supprimer ce dossier avant de relancer le script.")
+            sys.exit(1)
+
+    # On créé le dossier temporaire
+    os.mkdir(os.path.join(DOSSIER_PHOTO, DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS))

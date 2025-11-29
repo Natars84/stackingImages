@@ -95,6 +95,20 @@ def demander_information_string(question: str, reponses_possibles: set = None) -
     
     return reponse_utilisateur
 
+# Fonction chargée de supprimer récursivement un dossier (indiquer le chemin relatif du dossier)
+def supprimer_dossier(dossier_a_supprimer: str, recreer_dossier_vide: bool = False) -> bool:
+    dossier_a_supprimer = os.path.join(DOSSIER_PHOTO, dossier_a_supprimer)
+    
+    try:
+        shutil.rmtree(dossier_a_supprimer)
+        if recreer_dossier_vide: os.mkdir(dossier_a_supprimer)
+
+        return True
+    
+    except OSError as e:
+        print(f"Erreur lors de la suppression du dossier: {e}")
+        return False
+
 # Exécution du script
 if __name__ == "__main__":
 
@@ -143,16 +157,11 @@ if __name__ == "__main__":
 
         # Si l'utilisateur accepte la suppression du dossier temporaire
         if reponse_utilisateur == 'O':
-            dossier_a_supprimer = os.path.join(DOSSIER_PHOTO, DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS)
-            
-            try:
-                shutil.rmtree(dossier_a_supprimer)
-            except OSError as e:
-                print(f"Erreur lors de la suppression du dossier: {e}")
-                sys.exit(1)
+            if not supprimer_dossier(DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS, True): sys.exit(1)
+
         else:
             print("Arrêt du script, veuillez déplacer ou supprimer ce dossier avant de relancer le script.")
             sys.exit(1)
 
-    # On créé le dossier temporaire
-    os.mkdir(os.path.join(DOSSIER_PHOTO, DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS))
+    # Si le dossier temporaire n'existe pas
+    else: os.mkdir(os.path.join(DOSSIER_PHOTO, DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS))

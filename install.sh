@@ -8,7 +8,7 @@ WAND="libmagickwand-dev python3-wand"
 # Update package lists and install packages
 apt-get update --yes
 apt-get upgrade --yes
-apt-get install --yes $IMAGEMAGICK_PKG $WAND $PYTHON
+apt-get install --yes $IMAGEMAGICK_PKG $PYTHON $WAND --fix-missing
 
 # Install Wand Python library
 python3 -m pip install Wand

@@ -17,16 +17,16 @@ WAND_PYTHON="Wand"
 # Mise à jour et installation des paquets système
 apt-get update --yes && apt-get upgrade --yes
 
-echo "Installation des dépendances APT: $IMAGEMAGICK_PKG $PYTHON $WAND_DEPS"
+echo "Installation des dépendances APT: $IMAGEMAGICK_PKG $PYTHON $WAND_SYSTEME"
 if ! apt-get install --yes $IMAGEMAGICK_PKG $PYTHON $WAND_DEPS --fix-missing; then
     echo "ERREUR: Échec de l'installation des dépendances système."
     exit 1
 fi
 
 # Création de l'environnement virtuel Python
-echo "Création de l'environnement virtuel Python dans $VENV_PATH."
+echo "Création de l'environnement virtuel Python dans $VENV_DIR."
 
-if ! python3 -m venv "$VENV_PATH"; then
+if ! python3 -m venv "$VENV_DIR"; then
     echo "ERREUR: Échec de la création de l'environnement virtuel."
     exit 1
 fi
@@ -34,7 +34,7 @@ fi
 # Installation des dépendances Python dans le VENV
 echo "Installation de la librairie $WAND_PYTHON dans le VENV."
 
-if ! "$VENV_PATH/bin/pip" install "$WAND_PYTHON"; then
+if ! "$VENV_DIR/bin/pip" install "$WAND_PYTHON"; then
     echo "ERREUR: Échec de l'installation de la librairie Python Wand."
     exit 1
 fi

@@ -8,7 +8,7 @@ VENV_DIR="${1:-$VENV_DIR_PAR_DEFAUT}"
 
 # Paquets système à installer
 IMAGEMAGICK_PKG="imagemagick"
-PYTHON="python3 python3-pip"
+PYTHON="python3 python3-pip python3-venv"
 WAND_SYSTEME="libmagickwand-dev"
 
 # Dépendances Python à installer

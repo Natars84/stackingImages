@@ -14,29 +14,32 @@ WAND_SYSTEME="libmagickwand-dev"
 # Dépendances Python à installer
 WAND_PYTHON="Wand"
 
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] Démarrage de l'installation de l'application (script GitHub)."
+
 # Mise à jour et installation des paquets système
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] Mise à jour des index APT et mise à niveau du système."
 apt-get update --yes && apt-get upgrade --yes
 
-echo "Installation des dépendances APT: $IMAGEMAGICK_PKG $PYTHON $WAND_SYSTEME"
-if ! apt-get install --yes $IMAGEMAGICK_PKG $PYTHON $WAND_DEPS --fix-missing; then
-    echo "ERREUR: Échec de l'installation des dépendances système."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] Installation des dépendances APT: $IMAGEMAGICK_PKG $PYTHON $WAND_SYSTEME"
+if ! apt-get install --yes $IMAGEMAGICK_PKG $PYTHON $WAND_SYSTEME --fix-missing; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [ERREUR] Échec de l'installation des dépendances système."
     exit 1
 fi
 
 # Création de l'environnement virtuel Python
-echo "Création de l'environnement virtuel Python dans $VENV_DIR."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] Création de l'environnement virtuel Python dans $VENV_DIR."
 
 if ! python3 -m venv "$VENV_DIR"; then
-    echo "ERREUR: Échec de la création de l'environnement virtuel."
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [ERREUR] Échec de la création de l'environnement virtuel."
     exit 1
 fi
 
 # Installation des dépendances Python dans le VENV
-echo "Installation de la librairie $WAND_PYTHON dans le VENV."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] Installation de la librairie $WAND_PYTHON dans le VENV."
 
 if ! "$VENV_DIR/bin/pip" install "$WAND_PYTHON"; then
-    echo "ERREUR: Échec de l'installation de la librairie Python Wand."
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [ERREUR] Échec de l'installation de la librairie Python Wand."
     exit 1
 fi
 
-echo "Installation terminée avec succès."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] Installation terminée avec succès."

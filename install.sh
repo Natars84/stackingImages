@@ -1,14 +1,39 @@
 #!/bin/bash
 
-# Package to install
+# Paquets système à installer
 IMAGEMAGICK_PKG="imagemagick"
 PYTHON="python3 python3-pip"
-WAND="libmagickwand-dev python3-wand"
+WAND_SYSTEME="libmagickwand-dev"
 
-# Update package lists and install packages
-apt-get update --yes
-apt-get upgrade --yes
-apt-get install --yes $IMAGEMAGICK_PKG $PYTHON $WAND --fix-missing
+# Dépendances Python à installer
+WAND_PYTHON="Wand"
 
-# Install Wand Python library
-python3 -m pip install Wand
+# Dossier pour l'environnement virtuel
+VENV_DIR="./venv"
+
+# Mise à jour et installation des paquets système
+apt-get update --yes && apt-get upgrade --yes
+
+echo "Installation des dépendances APT: $IMAGEMAGICK_PKG $PYTHON $WAND_DEPS"
+if ! apt-get install --yes $IMAGEMAGICK_PKG $PYTHON $WAND_DEPS --fix-missing; then
+    echo "ERREUR: Échec de l'installation des dépendances système."
+    exit 1
+fi
+
+# Création de l'environnement virtuel Python
+echo "Création de l'environnement virtuel Python dans $VENV_PATH."
+
+if ! python3 -m venv "$VENV_PATH"; then
+    echo "ERREUR: Échec de la création de l'environnement virtuel."
+    exit 1
+fi
+
+# Installation des dépendances Python dans le VENV
+echo "Installation de la librairie $WAND_PYTHON dans le VENV."
+
+if ! "$VENV_PATH/bin/pip" install "$WAND_PYTHON"; then
+    echo "ERREUR: Échec de l'installation de la librairie Python Wand."
+    exit 1
+fi
+
+echo "Installation terminée avec succès."

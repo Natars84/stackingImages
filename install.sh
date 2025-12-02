@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Chemin par défaut pour l'environnement virtuel
+VENV_DIR_PAR_DEFAUT="./venv"
+
+# Récupération du chemin de l'environnement virtuel depuis les arguments ou utilisation du chemin par défaut
+VENV_DIR="${1:-$VENV_DIR_PAR_DEFAUT}"
+
 # Paquets système à installer
 IMAGEMAGICK_PKG="imagemagick"
 PYTHON="python3 python3-pip"
@@ -7,9 +13,6 @@ WAND_SYSTEME="libmagickwand-dev"
 
 # Dépendances Python à installer
 WAND_PYTHON="Wand"
-
-# Dossier pour l'environnement virtuel
-VENV_DIR="./venv"
 
 # Mise à jour et installation des paquets système
 apt-get update --yes && apt-get upgrade --yes

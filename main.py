@@ -4,195 +4,217 @@ import time
 import shutil
 from typing import Tuple, List, Union, Set, Optional
 
+# Quantite maximale de RAM que peut utiliser ImageMagick
+TAILLE_MAX_RAM_GO_UTILISABLE = 4
+
+# Quantite maximale d'espace disque que peut utiliser ImageMagick
+TAILLE_MAX_DISQUE_DUR_GO_UTILISABLE = 8
+
 # Les extensions d'images prises en charge
 EXTENSIONS_IMAGE = {
-    'jpg', 'jpeg', 'png', 'gif',
-    'bmp', 'svg', 'webp', 'tif',
-    'tiff', 'dng', 'ico', 'hdr'
+	'jpg', 'jpeg', 'png', 'gif',
+	'bmp', 'svg', 'webp', 'tif',
+	'tiff', 'dng', 'ico', 'hdr'
 }
 
 # Fonction de vérification des dépendances
 def verifier_dependences():
-    
-    # Vérification 1: Wand (Python)
-    try:
-        from wand.version import VERSION
-    except:
-        print("❌ Erreur: La librairie Python 'Wand' n'est pas installée ('pip install Wand').")
-        return False
-    
-    # Vérification 2: Liaison avec ImageMagick (librairie C)
-    try:
-        from wand.api import library
-        library.MagickGetCopyright()
-        return True
-        
-    except Exception as e:
-        print("❌ Erreur: Wand n'a pas pu se lier à la librairie ImageMagick.")
-        print(f"   Détails: {e}")
-        print("\n   ACTION REQUISE: Installez ou réinstallez ImageMagick sur votre système.")
-        return False
+	
+	# Vérification 1: Wand (Python)
+	try:
+		from wand.version import VERSION
+	except:
+		print("❌ Erreur: La librairie Python 'Wand' n'est pas installée ('pip install Wand').")
+		return False
+	
+	# Vérification 2: Liaison avec ImageMagick (librairie C)
+	try:
+		from wand.api import library
+		library.MagickGetCopyright()
+		return True
+		
+	except Exception as e:
+		print("❌ Erreur: Wand n'a pas pu se lier à la librairie ImageMagick.")
+		print(f"   Détails: {e}")
+		print("\n	ACTION REQUISE: Installez ou réinstallez ImageMagick sur votre système.")
+		return False
 
 # Fonction qui liste et comptabilise le nombre de fichier par extension trouvée dans le dossier donné
 def compter_type_fichier(dossierAScanner: str):
-    listeExtension = {}
-    liste_fichiers = os.listdir(dossierAScanner)
+	listeExtension = {}
+	liste_fichiers = os.listdir(dossierAScanner)
 
-    # Pour chacun des fichiers, on extrait l'extension
-    for fichier in liste_fichiers:
-        fichier = os.path.join(dossierAScanner, fichier)
+	# Pour chacun des fichiers, on extrait l'extension
+	for fichier in liste_fichiers:
+		fichier = os.path.join(dossierAScanner, fichier)
 
-        if os.path.isfile(f"{dossierAScanner}/{fichier}"):
-            extension = os.path.splitext(fichier)[1].lstrip('.').lower()
+		if os.path.isfile(f"{dossierAScanner}/{fichier}"):
+			extension = os.path.splitext(fichier)[1].lstrip('.').lower()
 
-            # On comptabilise l'extension trouvée
-            listeExtension[extension] = listeExtension.get(extension, 0) + 1
-    
-    return listeExtension
+			# On comptabilise l'extension trouvée
+			listeExtension[extension] = listeExtension.get(extension, 0) + 1
+	
+	return listeExtension
 
 # Fonction chargée de demander une information à l'utilisateur. Elle peut contraindre sa réponse à une liste définie.
 # Elle renvoie sa réponse en tant que string
 def demander_information_string(question: str, reponses_possibles: Optional[Set[str]] = None) -> str:
-    if reponses_possibles is None:
-        reponses_possibles = set() # Utilise un set vide si aucun n'est fourni
+	if reponses_possibles is None:
+		reponses_possibles = set() # Utilise un set vide si aucun n'est fourni
 
-    reponse_utilisateur = ""
-    
-    reponses_possibles_upper = {r.upper().strip() for r in reponses_possibles}
-    question = question + " (Rép. possibles : " + ", ".join(reponses_possibles) + "):".upper().strip()
+	reponse_utilisateur = ""
+	
+	reponses_possibles_upper = {r.upper().strip() for r in reponses_possibles}
+	question = question + " (Rép. possibles : " + ", ".join(reponses_possibles) + "):".upper().strip()
 
-    # On affiche la question et attends une réponse de l'utilisateur
-    if len(reponses_possibles_upper) >= 1:
+	# On affiche la question et attends une réponse de l'utilisateur
+	if len(reponses_possibles_upper) >= 1:
 
-        # Tant que la réponse de l'utilisateur est invalide
-        while reponse_utilisateur not in reponses_possibles_upper:
-            sys.stdout.write(question + ' ') #On écrit puis affiche la question
-            sys.stdout.flush()
+		# Tant que la réponse de l'utilisateur est invalide
+		while reponse_utilisateur not in reponses_possibles_upper:
+			sys.stdout.write(question + ' ') #On écrit puis affiche la question
+			sys.stdout.flush()
 
-            reponse_utilisateur = sys.stdin.readline().strip().upper()
-            
-            # Si la réponse de l'utilisateur est correcte, on sort de la boucle
-            if reponse_utilisateur in reponses_possibles_upper:
-                print(f"\r{question}{reponse_utilisateur}")
-                break
+			reponse_utilisateur = sys.stdin.readline().strip().upper()
+			
+			# Si la réponse de l'utilisateur est correcte, on sort de la boucle
+			if reponse_utilisateur in reponses_possibles_upper:
+				print(f"\r{question}{reponse_utilisateur}")
+				break
 
-            # On efface l'écran
-            nombreCaractereAffiche = len(question) + len(reponse_utilisateur)
-            sys.stdout.write('\r' + ' ' * (nombreCaractereAffiche + 1) + '\r')
-            sys.stdout.flush()
+			# On efface l'écran
+			nombreCaractereAffiche = len(question) + len(reponse_utilisateur)
+			sys.stdout.write('\r' + ' ' * (nombreCaractereAffiche + 1) + '\r')
+			sys.stdout.flush()
 
-            # On affiche un message d'erreur
-            messageErreur = "Réponse invalide, veuillez réessayer"
-            sys.stdout.write('\r' + messageErreur + '\r')
-            sys.stdout.flush()
-            time.sleep(2)
+			# On affiche un message d'erreur
+			messageErreur = "Réponse invalide, veuillez réessayer"
+			sys.stdout.write('\r' + messageErreur + '\r')
+			sys.stdout.flush()
+			time.sleep(2)
 
-            # On efface de nouveau l'écran
-            sys.stdout.write('\r' + ' ' * (len(messageErreur) + 1) + '\r')
-            sys.stdout.flush()
+			# On efface de nouveau l'écran
+			sys.stdout.write('\r' + ' ' * (len(messageErreur) + 1) + '\r')
+			sys.stdout.flush()
 
-    else:
-        reponse_utilisateur = input(question).upper().strip()
-    
-    return reponse_utilisateur
+	else:
+		reponse_utilisateur = input(question).upper().strip()
+	
+	return reponse_utilisateur
 
 # Fonction chargée de supprimer récursivement un dossier (indiquer le chemin relatif du dossier)
 def supprimer_dossier(dossier_a_supprimer: str, recreer_dossier_vide: Optional[bool] = False) -> bool:
-    dossier_a_supprimer = os.path.join(DOSSIER_PHOTO, dossier_a_supprimer)
-    
-    try:
-        shutil.rmtree(dossier_a_supprimer)
-        if recreer_dossier_vide: os.mkdir(dossier_a_supprimer)
+	dossier_a_supprimer = os.path.join(DOSSIER_PHOTO, dossier_a_supprimer)
+	
+	try:
+		shutil.rmtree(dossier_a_supprimer)
+		if recreer_dossier_vide: os.mkdir(dossier_a_supprimer)
 
-        return True
-    
-    except OSError as e:
-        print(f"Erreur lors de la suppression du dossier: {e}")
-        return False
+		return True
+	
+	except OSError as e:
+		print(f"Erreur lors de la suppression du dossier: {e}")
+		return False
 
 # Fonction chargée de stacker chacune des photos
-def stacking_photos(liste_photos: List[str], dossier_temporaire: str, nom_photo_finale: Optional[str] = "stacking"):
-    # Extration des infos de base de la première photo
-    photo_de_base_source = liste_photos[0]
-    dossier_origine = os.path.dirname(photo_de_base_source)
-    extension_photo = os.path.splitext(photo_de_base_source)[1]
-    nom_photo_finale = f"{nom_photo_finale}{extension_photo}"
-    chemin_photo_finale_temporaire = os.path.join(dossier_temporaire, nom_photo_finale)
+def stacking_photos(liste_photos: List[str], dossier_temporaire: str, methode_stacking: str, nom_photo_finale: Optional[str] = "stacking"):
+	from wand.image import Image
 
-    # On copie la première photo dans le dossier temporaire et on lui donne directement le nom du fichier de sortie
-    shutil.copy2(photo_de_base_source, chemin_photo_finale_temporaire)
+	# 
+	extension_photo = os.path.splitext(liste_photos[0])[1]
+	nom_photo_finale = f"{nom_photo_finale}{extension_photo}"
+	chemin_photo_finale = os.path.join(dossier_temporaire, nom_photo_finale)
 
-    # On stack chacune des photos de la liste avec la photo de base
-    for photo in liste_photos:
-
+	# On fusionne les images par deux
+	with Image(filename=liste_photos[0]) as image_base:
+		for i in range(1, len(liste_photos)):
+			with Image(filename=liste_photos[i]) as image_a_fusionner:
+				# Pour chacune des fusions, on applique un coefficients sur la nouvelle image pour tenir compte des images déja fusionnées
+				pourcentage = int(100 / (i + 1))
+				image_base.composite(image_a_fusionner, operator='blend', arguments=str(pourcentage))
+		
+		image_base.save(filename=chemin_photo_finale)
 
 # Exécution du script
 if __name__ == "__main__":
 
-    # Vérification des dépendances
-    if not verifier_dependences():
-        print("Arrêt du script : les dépendances manquent.")
-        sys.exit(1)
+	# Vérification des dépendances
+	if not verifier_dependences():
+		print("Arrêt du script : les dépendances manquent.")
+		sys.exit(1)
 
-    # Analyse du contenu du dossier fourni en argument
-    if len(sys.argv) < 2:
-        print("Erreur: veuillez fournir le chemin du dossier contenant les images.")
-        sys.exit(1)
+	# Analyse du contenu du dossier fourni en argument
+	if len(sys.argv) < 2:
+		print("Erreur: veuillez fournir le chemin du dossier contenant les images.")
+		sys.exit(1)
 
-    if not os.path.isdir(sys.argv[1]):
-        print(f"Erreur: le chemin fourni '{sys.argv[1]}' n'est pas un dossier valide.")
-        sys.exit(1)
-    
-    # Le dossier contenant les photos à traiter
-    DOSSIER_PHOTO = os.path.abspath(sys.argv[1])
+	if not os.path.isdir(sys.argv[1]):
+		print(f"Erreur: le chemin fourni '{sys.argv[1]}' n'est pas un dossier valide.")
+		sys.exit(1)
+	
+	# Definition des limites maximum de RAM et disque dur utilisable
+	from wand.resource import limits
 
-    listeExtension = compter_type_fichier(DOSSIER_PHOTO)
+	limits['memory'] = TAILLE_MAX_RAM_GO_UTILISABLE * 1024 * 1024 * 1024
+	limits['map'] = TAILLE_MAX_DISQUE_DUR_GO_UTILISABLE * 1024 * 1024 * 1024
 
-    # On vérifie qu'il n'y ait qu'un seul type de fichier image dans le dossier
-    type_fichier_trouve = listeExtension.keys()
-    type_image_trouve = EXTENSIONS_IMAGE.intersection(type_fichier_trouve)
+	# Le dossier contenant les photos à traiter
+	DOSSIER_PHOTO = os.path.abspath(sys.argv[1])
 
-    if len(type_image_trouve) > 1:
-        print("Des fichiers images de différents type ont été trouvés, veuillez ne laisser qu'un seul type de fichier à traiter.")
-        sys.exit(1)
-    
-    #############################################
-    ##### PREPARATION DU DOSSIER TEMPORAIRE #####
-    #############################################
-    DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS = "tmp"
-    CHEMIN_DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS = os.path.join(DOSSIER_PHOTO, DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS)
+	listeExtension = compter_type_fichier(DOSSIER_PHOTO)
 
-    # Si le dossier temporaire existe déjà
-    if DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS in os.listdir(DOSSIER_PHOTO):
+	# On vérifie qu'il n'y ait qu'un seul type de fichier image dans le dossier
+	type_fichier_trouve = listeExtension.keys()
+	type_image_trouve = EXTENSIONS_IMAGE.intersection(type_fichier_trouve)
 
-        # On pose la question à l'utilisateur
-        question = "Un dossier temporaire contenant les photos en cours de traitement a été trouvé.\n" \
-        "Si vous souhaitez poursuivre l'installation, ce dossier sera supprimé.\n" \
-        "\nVoulez-vous continuer ?"
+	if len(type_image_trouve) > 1:
+		print("Des fichiers images de différents type ont été trouvés, veuillez ne laisser qu'un seul type de fichier à traiter.")
+		sys.exit(1)
+	
+	#############################################
+	##### PREPARATION DU DOSSIER TEMPORAIRE #####
+	#############################################
+	DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS = "tmp"
+	CHEMIN_DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS = os.path.join(DOSSIER_PHOTO, DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS)
 
-        reponse_accepte = {"O", "N"}
-        reponse_utilisateur = demander_information_string(question, reponse_accepte)
+	# Si le dossier temporaire existe déjà
+	if DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS in os.listdir(DOSSIER_PHOTO):
 
-        # Si l'utilisateur accepte la suppression du dossier temporaire
-        if reponse_utilisateur == 'O':
-            if not supprimer_dossier(DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS, True): sys.exit(1)
+		# On pose la question à l'utilisateur
+		question = "Un dossier temporaire contenant les photos en cours de traitement a été trouvé.\n" \
+		"Si vous souhaitez poursuivre l'installation, ce dossier sera supprimé.\n" \
+		"\nVoulez-vous continuer ?"
 
-        else:
-            print("Arrêt du script, veuillez déplacer ou supprimer ce dossier avant de relancer le script.")
-            sys.exit(1)
+		reponse_accepte = {"O", "N"}
+		reponse_utilisateur = demander_information_string(question, reponse_accepte)
 
-    # Si le dossier temporaire n'existe pas
-    else: os.mkdir(CHEMIN_DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS)
+		# Si l'utilisateur accepte la suppression du dossier temporaire
+		if reponse_utilisateur == 'O':
+			if not supprimer_dossier(DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS, True): sys.exit(1)
 
-    # On fait l'inventaire des photos présentes pour un traitement ultérieur
-    liste_fichier = os.listdir(DOSSIER_PHOTO)
-    liste_photos = []
+		else:
+			print("Arrêt du script, veuillez déplacer ou supprimer ce dossier avant de relancer le script.")
+			sys.exit(1)
 
-    for fichier in liste_fichier:
-        chemin_fichier = os.path.join(DOSSIER_PHOTO, fichier)
-        print(chemin_fichier)
-        if os.path.isfile(chemin_fichier): liste_photos.append(chemin_fichier)
+	# Si le dossier temporaire n'existe pas
+	else: os.mkdir(CHEMIN_DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS)
 
-    # On appelle la fonction de stacking des photos
+	# On fait l'inventaire des photos présentes pour un traitement ultérieur
+	liste_fichier = os.listdir(DOSSIER_PHOTO)
+	liste_photos = []
 
-    stacking_photos(liste_photos, CHEMIN_DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS)
+	for fichier in liste_fichier:
+		chemin_fichier = os.path.join(DOSSIER_PHOTO, fichier)
+#		print(chemin_fichier)
+		if os.path.isfile(chemin_fichier): liste_photos.append(chemin_fichier)
+
+	# On appelle la fonction de stacking des photos
+	from wand.exceptions import CacheError
+	
+	try:
+		stacking_photos(liste_photos, CHEMIN_DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS, 'mosaic')
+
+	except CacheError as e:
+		print(f"Erreur lors du stacking, veuillez verifier les ressoures materielles (RAM, disque dur) disponible et celles allouees a ImageMagick.\n{e}")
+		exit(1)
+

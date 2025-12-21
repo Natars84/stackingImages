@@ -46,7 +46,6 @@ def compter_type_fichier(dossierAScanner: str):
 
 	# Pour chacun des fichiers, on extrait l'extension
 	for fichier in liste_fichiers:
-		fichier = os.path.join(dossierAScanner, fichier)
 
 		if os.path.isfile(f"{dossierAScanner}/{fichier}"):
 			extension = os.path.splitext(fichier)[1].lstrip('.').lower()
@@ -134,6 +133,8 @@ def stacking_photos(liste_photos: List[str], dossier_temporaire: str, methode_st
 				image_base.composite(image_a_fusionner, operator='blend', arguments=str(pourcentage))
 		
 		image_base.save(filename=chemin_photo_finale)
+		
+		return nom_photo_finale
 
 # Exécution du script
 if __name__ == "__main__":
@@ -160,7 +161,6 @@ if __name__ == "__main__":
 
 	# Le dossier contenant les photos à traiter
 	DOSSIER_PHOTO = os.path.abspath(sys.argv[1])
-
 	listeExtension = compter_type_fichier(DOSSIER_PHOTO)
 
 	# On vérifie qu'il n'y ait qu'un seul type de fichier image dans le dossier
@@ -179,23 +179,26 @@ if __name__ == "__main__":
 
 	# Si le dossier temporaire existe déjà
 	if DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS in os.listdir(DOSSIER_PHOTO):
+#
+#		# On pose la question à l'utilisateur
+#		question = "Un dossier temporaire contenant les photos en cours de traitement a été trouvé.\n" \
+#		"Si vous souhaitez poursuivre l'installation, ce dossier sera supprimé.\n" \
+#		"\nVoulez-vous continuer ?"
+#
+#		reponse_accepte = {"O", "N"}
+#		reponse_utilisateur = demander_information_string(question, reponse_accepte)
+#
+#		# Si l'utilisateur accepte la suppression du dossier temporaire
+#		if reponse_utilisateur == 'O':
+#			if not supprimer_dossier(DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS, True): sys.exit(1)
+#
+#		else:
+#			print("Arrêt du script, veuillez déplacer ou supprimer ce dossier avant de relancer le script.")
+#			sys.exit(1)
 
-		# On pose la question à l'utilisateur
-		question = "Un dossier temporaire contenant les photos en cours de traitement a été trouvé.\n" \
-		"Si vous souhaitez poursuivre l'installation, ce dossier sera supprimé.\n" \
-		"\nVoulez-vous continuer ?"
-
-		reponse_accepte = {"O", "N"}
-		reponse_utilisateur = demander_information_string(question, reponse_accepte)
-
-		# Si l'utilisateur accepte la suppression du dossier temporaire
-		if reponse_utilisateur == 'O':
-			if not supprimer_dossier(DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS, True): sys.exit(1)
-
-		else:
-			print("Arrêt du script, veuillez déplacer ou supprimer ce dossier avant de relancer le script.")
-			sys.exit(1)
-
+		# Suppression et recréation du dossier temporaire
+		supprimer_dossier(DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS, True)
+		
 	# Si le dossier temporaire n'existe pas
 	else: os.mkdir(CHEMIN_DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS)
 
@@ -212,9 +215,12 @@ if __name__ == "__main__":
 	from wand.exceptions import CacheError
 	
 	try:
-		stacking_photos(liste_photos, CHEMIN_DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS, 'mosaic')
+		nom_fichier_final = stacking_photos(liste_photos, CHEMIN_DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS, 'mosaic')
+		shutil.copy(os.path.join(CHEMIN_DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS, nom_fichier_final), os.path.join(DOSSIER_PHOTO, nom_fichier_final))
+		supprimer_dossier(DOSSIER_TEMPORAIRE_TRAITEMENT_PHOTOS, False)
 
 	except CacheError as e:
 		print(f"Erreur lors du stacking, veuillez verifier les ressoures materielles (RAM, disque dur) disponible et celles allouees a ImageMagick.\n{e}")
 		exit(1)
-
+		
+	
